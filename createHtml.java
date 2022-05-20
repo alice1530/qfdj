@@ -11,7 +11,7 @@ public static void main(String[] args){
 
     String dir = System.getProperty("user.dir")+PATH_SEPARATOR+"Music"+PATH_SEPARATOR;
 //String dir="/root/qfdj/Music/";
-//String date = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis()-3600*24*1000);
+//String date = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis()-3600*24*9*1000);
 String date = new SimpleDateFormat("yyyy-MM-dd").format(System.currentTimeMillis());
 
 try (FileWriter fw = new FileWriter(dir+date+"/list"+date+".html");FileWriter wf = new FileWriter(dir+"index.html")) {
@@ -34,7 +34,7 @@ try (FileWriter fw = new FileWriter(dir+date+"/list"+date+".html");FileWriter wf
                         //sb.append("style=\"white-space: nowrap;text-overflow: ellipsis;");
                         //sb.append("border: solid 1px;width:480px;overflow:hidden;max-height:80px;background-color:pink;\">");
 			//sb.append("<a style=\"background-color:#1df403;margin:2px;\" href=\""+date+"/"+list[i]+"\"><b>↓↓</b></a>");
-			sb.append("<a id=\""+list[i].split("_")[0]+"\" onclick=\"play('"+date+"','"+list[i]+"')\" href=\"javascript:void(0);\">"+list[i]+ "</a>");
+			sb.append("<a id=\""+list[i].split("_")[0]+"\" onclick=\"play()\" href=\"javascript:void(0);\">"+list[i]+ "</a>");
 	                sb.append("</li>\n");
                  }
 	sb.append("</ol>");
@@ -57,7 +57,9 @@ try (FileWriter fw = new FileWriter(dir+date+"/list"+date+".html");FileWriter wf
         frame.append("<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
        // frame.append("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no\" />");
         frame.append("<style type=\"text/css\">.item{border: solid 1px;width:480px;max-height:80px;background-color:#ffc0cba1;}</style>");
-        frame.append("<style type=\"text/css\">.current{border: solid 1px;width:600px;font-size:initial;background-color:greenyellow;}</style>");
+        frame.append("<style type=\"text/css\">.current{border: solid 1px;width:600px;font-size:initial;background-color:greenyellow;");
+	frame.append("animation-name:current_ant;animation-duration: 1s;animation-iteration-count: infinite;animation-direction: alternate;}</style>");
+        frame.append("<style type=\"text/css\">@keyframes current_ant{from{transform:scale(0.8,0.8)} to{transform:scale(1,1)}}</style>");
         frame.append("<style type=\"text/css\">h1{cursor: pointer;} a{text-decoration:none;}</style>");
         frame.append("<style type=\"text/css\">ol{display: flex;flex-direction: column; align-items: center;}</style>");
         frame.append("<link rel=\"stylesheet\" href=\"video-js.min.css\">");
@@ -73,13 +75,13 @@ try (FileWriter fw = new FileWriter(dir+date+"/list"+date+".html");FileWriter wf
         frame.append("<video id=\"my-player\"  class=\"video-js vjs-big-play-centered\"></video>");
         frame.append("</div>");
         frame.append("<h1 id='control'  style='display:none;color:red;text-align: center;'>");
-	frame.append("<a title='ctrl+←' href='javascript:void(0);' onclick='prevNext(-1)'>←←上一首</a>&nbsp;&nbsp;|&nbsp;&nbsp;");
+	frame.append("<a title='ctrl+←' href='javascript:void(0);' onclick='prevNext(-1)'>←上一首</a>&nbsp;&nbsp;|&nbsp;&nbsp;");
 	frame.append("<a title='space' href='javascript:void(0);' onclick='continuePlay()'></a>&nbsp;&nbsp;|&nbsp;&nbsp;");
-	frame.append("<a title='ctrl+→' href='javascript:void(0);' onclick='prevNext(1)'>下一首→→</a></h1>");
+	frame.append("<a title='ctrl+→' href='javascript:void(0);' onclick='prevNext(1)'>下一首→</a></h1>");
         frame.append("<h1 id=\"showDowload\" style = \"color:red;text-align: center;\"></h1>");
 	//frame.append(sb.toString());
 	//
-	//
+	//加载列表
 	Arrays.asList(listm).stream().filter( o-> o.isDirectory()&&o.getName().startsWith("20")).map(o->o.getName()).sorted(Comparator.reverseOrder()).forEach( dname -> {
             		
 			try{
@@ -136,8 +138,11 @@ System.out.println(listm[i].getName());
 			frame.append("});");
 		frame.append("});");
         frame.append("};");
-        frame.append("function play(date,name) {");
-        frame.append("var id = name.split('_')[0];");
+        frame.append("function play() {");
+        frame.append("var aa=event.target;");
+        frame.append("var id = aa.id;");
+        frame.append("var date = aa.parentElement.parentElement.previousElementSibling.innerText;");
+        frame.append("var name = aa.textContent;");
        // frame.append("var showName = name.split('_')[1];");
         frame.append("if(document.querySelector('.current')!=null)document.querySelector('.current').setAttribute('class','item');");
         frame.append("document.getElementById(id).parentElement.setAttribute('class','current');");
@@ -174,7 +179,9 @@ System.out.println(listm[i].getName());
         frame.append("};");
         frame.append("function showStatus() {");
         frame.append("var btn = document.getElementById('control').children[1];");
-        frame.append("if(player.paused())btn.innerText='播放';else btn.innerText='暂停'");
+        frame.append("var animation = document.querySelector('.current');");
+        frame.append("if(player.paused()){btn.innerText='播放';animation.style.animationPlayState='paused';} ");
+	frame.append("else {btn.innerText='暂停';animation.style.animationPlayState='running';}");
         frame.append("};");
         frame.append("document.addEventListener('keydown',e=>{");
         frame.append("if(e.ctrlKey&&e.keyCode===37)prevNext(-1);");
