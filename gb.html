@@ -1,0 +1,131 @@
+<html>  
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">.item{border: solid 1px;width:280px;max-height:80px;background-color:#ffc0cba1;}</style>
+    <style type="text/css">.current{border: solid 1px;width:300px;font-size:initial;background-color:greenyellow;animation-name:current_ant;animation-duration: 2s;animation-iteration-count: infinite;animation-direction: alternate;}</style>
+    <style type="text/css">@keyframes current_ant{from{transform:scale(0.8,0.8)} to{transform:scale(1,1)}}</style>
+    <style type="text/css">h1{cursor: pointer;} a{text-decoration:none;}</style>
+    <style type="text/css">ol{display: flex;flex-direction: column; align-items: center;}</style>
+    <link rel="stylesheet" href="video-js.min.css">
+    <script src="video.min.js">
+    </script>
+    <title>在线广播</title>
+  </head>
+  
+  <body style='background-color:aliceblue;'>
+    <h1 onclick='dspl()' id="showName" style="color:red;text-align: center;">点击列表↓↓↓↓播放广播</h1>
+    <div id='showView' style='display:none;justify-content: center;'>
+      <video id="my-player" class="video-js vjs-big-play-centered">
+      </video>
+    </div>
+    <h1 id='control' style='display:none;color:red;text-align: center;'>
+      <a title='ctrl+←' href='javascript:void(0);' onclick='prevNext(-1)'>上一个</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+      <a title='space' href='javascript:void(0);' onclick='continuePlay()'></a>&nbsp;&nbsp;|&nbsp;&nbsp;
+      <a title='ctrl+→' href='javascript:void(0);' onclick='prevNext(1)'>下一个</a>
+    </h1>   
+    <div style="text-align:center;background-color:yellow;margin:10px;padding:5px;">
+      <span>在线广播</span>
+    </div>
+    <ol>    
+      <li class="item"><a id="zgzs" >中国之声</a></li>
+      <li class="item"><a id="jjzs" >经济之声</a></li>
+      <li class="item"><a id="yyzs" >音乐之声</a></li>      
+      <li class="item"><a id="zhzs" >台海之声</a></li>
+      <li class="item"><a id="xgzs" >香港之声</a></li>
+      <li class="item"><a id="szzs" >神州之声</a></li>      
+      <li class="item"><a id="mzzs" >民族之声</a></li>
+      <li class="item"><a id="wyzs" >文艺之声</a></li>
+      <li class="item"><a id="lnzs" >老年之声</a></li>
+	  <li class="item"><a id="hxzs" >大湾区之声</a></li>
+      <li class="item"><a id="xczs" >中国乡村之声</a></li>      	  
+      <li class="item"><a id="ylgb" >阅读广播</a></li>
+      <li class="item"><a id="zygb" >藏语广播</a></li>
+      <li class="item"><a id="wygb" >维语广播</a></li>
+      <li class="item"><a id="hygb" >哈语广播</a></li>
+	  <li class="item"><a id="dszs" >经典音乐广播</a></li>
+	  <li class="item"><a id="gsgljtgb" >中国交通广播</a></li>	  
+    </ol>
+    
+   <!-- <div>每日13点10分更新，仅保留近7天的内容</div> -->
+        <script type="text/javascript">let swich = 0;
+          window.onload = function() {
+		  var list = document.querySelectorAll('a[id]');
+		  list.forEach(function(item, index, arr){
+				item.addEventListener('click',play);
+				item.setAttribute("href","javascript:void(0);");
+		  });
+		  
+            player = videojs('my-player', {
+              autoplay: true,
+              controls: true,
+              preload: "auto"
+            },
+            function() {
+              this.on('loadeddata', function(){
+                showStatus();
+              });
+              this.on('ended', function(){
+                prevNext(1);
+              });
+            });
+          };
+          function play(data) {
+            var aa = event.target;
+            var name = aa.textContent;
+			var id = aa.id;
+            if (document.querySelector('.current') != null) document.querySelector('.current').setAttribute('class', 'item');
+            aa.parentElement.setAttribute('class', 'current');
+            document.getElementById('showName').innerHTML = name;
+			
+            player.src([{
+              src: "/live/"+id+"/index.m3u8",
+              type: "application/x-mpegURL"
+            }]);
+            document.getElementById('showName').scrollIntoView({
+              behavior: 'smooth'
+            });
+            document.getElementById('control').style.setProperty('display', 'block');
+          };
+          function dspl() {
+            swich++;
+            if (swich % 2 == 0) document.getElementById('showView').style.setProperty('display', 'none');
+            else document.getElementById('showView').style.setProperty('display', 'flex');
+          };
+          function prevNext(num) {
+            var list = document.querySelectorAll('a[id]');
+            var nextIndex = 0;
+            let str = player.currentSrc();
+			//console.log(str)
+			var tmp =str.substr(0,str.lastIndexOf('/'));
+			var id = tmp.substr(tmp.lastIndexOf('/')+1);
+			//console.log(list.length)
+            //let id = str.substr(str.lastIndexOf('/') + 1, str.length - str.lastIndexOf('.') + 1);
+            list.forEach(function(item, index, arr){
+              if (item.id == id) nextIndex = index + num;			  
+            });
+			//console.log(id,nextIndex);
+            nextIndex = nextIndex < 0 ? list.length - 1 : nextIndex;
+            nextIndex = nextIndex > list.length - 1 ? 0 : nextIndex;			
+            list[nextIndex].click();
+			//console.log(list[nextIndex]);
+          };
+          function continuePlay() {
+            if (player.paused()) player.play();
+            else player.pause();
+            showStatus();
+          };
+          function showStatus() {
+            var btn = document.getElementById('control').children[1];
+            var animation = document.querySelector('.current');
+            if (player.paused()) {
+              btn.innerText = '播放';
+              animation.style.animationPlayState = 'paused';
+            } else {
+              btn.innerText = '暂停';
+              animation.style.animationPlayState = 'running';
+            }
+          };
+         </script>
+  </body>
+
+</html>
